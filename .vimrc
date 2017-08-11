@@ -21,23 +21,12 @@ Plugin 'tmhedberg/SimpylFold'
 Plugin 'scrooloose/nerdtree'
 Plugin 'jistr/vim-nerdtree-tabs'
 Plugin 'FelikZ/ctrlp-py-matcher'
-Plugin 'davidhalter/jedi-vim'
+"Plugin 'davidhalter/jedi-vim'
 " Plugin 'kchmck/vim-coffee-script'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-"Plugin 'Valloric/YouCompleteMe'
-"Plugin 'klen/python-mode'
-" plugin from http://vim-scripts.org/vim/scripts.html
-" Plugin 'L9'
-" Git plugin not hosted on GitHub
-" Plugin 'git://git.wincent.com/command-t.git'
-" git repos on your local machine (i.e. when working on your own plugin)
-" Plugin 'file:///home/gmarik/path/to/plugin'
-" The sparkup vim script is in a subdirectory of this repo called vim.
-" Pass the path to set the runtimepath properly.
-" Plugin 'rstacruz/sparkup', {'rtp': 'vim/'}
-" Avoid a name conflict with L9
-" Plugin 'user/L9', {'name': 'newL9'}
+Plugin 'Valloric/YouCompleteMe'
+Plugin 'FooSoft/vim-argwrap'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -62,57 +51,85 @@ set backspace=indent,eol,start
 set history=1000
 set showcmd
 set showmode
+
+" Highlight search
 set hlsearch
 
 set hidden
 
 "Turn off swap files
-
 set noswapfile
 set nobackup
 set nowb
 set clipboard=unnamed
 set autoindent
 set smartindent
+
+" Tabs
 set expandtab      " Tab key indents with spaces
 set shiftwidth=4   " auto-indent (e.g. >>) width
 set tabstop=4      " display width of a physical tab character
 set softtabstop=0  " disable part-tab-part-space tabbing
 
-set colorcolumn=80
+" Show column marker
+set colorcolumn=125
+set textwidth=120
+
+" Preview window height (used for call tips)
+set previewheight=6
+
 set wrap
 set linebreak
 set laststatus=2
 set splitbelow
 set splitright
+
+" status line
 set statusline=%<%F\ %h%m%r%y%=%-14.(%l,%c%V%)\ %P
 set statusline+=%{fugitive#statusline()}
-" Syntastic options
-let g:syntastic_python_checkers = ['flake8']
-let g:syntastic_python_flake8_args='--ignore=E501'
-let g:syntastic_coffee_checkers = ['coffee']
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 
+" remaps
 nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
-map <C-n> :NERDTreeToggle<CR>
+inoremap jk <Esc>
 map <F2> i<CR><ESC>
 
-let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
+" Buffer cycling
+nnoremap <Up> :bp<cr>
+nnoremap <Down> :bn <cr>
 
-let g:nerdtree_tabs_autofind=1
-
+" Syntastic options
+let g:syntastic_python_checkers = ['flake8']
+let g:syntastic_python_flake8_args='--ignore=E501'
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
-" ctrlp options
+" NERDTree
+map <C-n> :NERDTreeToggle<CR>
+let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
+let g:nerdtree_tabs_autofind=1
 
+nnoremap gd :YcmCompleter GoTo<CR>
+let g:ycm_python_binary_path = 'python'
+
+" argwrap
+nnoremap tt :ArgWrap<CR>
+let g:argwrap_tail_comma = 1
+
+" ctrlp options
+let g:ctrlp_max_files=0
+let g:ctrlp_max_depth=40
+let g:ctrlp_cache_dir = $HOME . '/.cache/ctrlp'
+if executable('ag')
+    let g:ctrlp_user_command = 'ag %s --files-with-matches -g "" --ignore "\.git$\|\.hg$\|\.svn$"'
+endif
 let g:ctrlp_use_caching = 1
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_user_command = 'ag %s -i --nocolor --nogroup --hidden
@@ -131,14 +148,11 @@ fun! TrimWhitespace()
     %s/ \+$//e
     call setpos('.', l:save_cursor)
 endfun
-
 command! Trimspace call TrimWhitespace()
 
-" clear search highlight
-" nnoremap <esc> :noh<return><esc>
-"
+" airline
 if !exists('g:airline_symbols')
-let g:airline_symbols = {}
+    let g:airline_symbols = {}
 endif
 
 " unicode symbols
@@ -169,3 +183,6 @@ let g:airline#extensions#tabline#enabled = 1
 
 " Show just the filename
 let g:airline#extensions#tabline#fnamemod = ':t'
+
+" Trim trailing whitespace for code files 
+autocmd FileType python,javascript,html,yaml autocmd BufWritePre <buffer> :%s/\s\+$//e
