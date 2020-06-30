@@ -19,15 +19,13 @@ Plugin 'ctrlpvim/ctrlp.vim'
 " Plugin 'pangloss/vim-javascript'
 Plugin 'tmhedberg/SimpylFold'
 Plugin 'scrooloose/nerdtree'
-Plugin 'jistr/vim-nerdtree-tabs'
 Plugin 'FelikZ/ctrlp-py-matcher'
-"Plugin 'davidhalter/jedi-vim'
-" Plugin 'kchmck/vim-coffee-script'
+Plugin 'davidhalter/jedi-vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'Valloric/YouCompleteMe'
+"Plugin 'Valloric/YouCompleteMe'
 Plugin 'FooSoft/vim-argwrap'
-
+Plugin 'autozimu/LanguageClient-neovim'
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -61,9 +59,9 @@ set hidden
 set noswapfile
 set nobackup
 set nowb
-set clipboard=unnamed
+set clipboard=unnamedplus
 set autoindent
-set smartindent
+" set smartindent
 
 " Tabs
 set expandtab      " Tab key indents with spaces
@@ -72,13 +70,13 @@ set tabstop=4      " display width of a physical tab character
 set softtabstop=0  " disable part-tab-part-space tabbing
 
 " Show column marker
-set colorcolumn=125
-set textwidth=120
+set colorcolumn=120
+" set textwidth=120
 
 " Preview window height (used for call tips)
 set previewheight=6
 
-set wrap
+" set wrap
 set linebreak
 set laststatus=2
 set splitbelow
@@ -90,6 +88,12 @@ set statusline+=%{fugitive#statusline()}
 set statusline+=%#warningmsg#
 set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
+
+" toggle paste
+set pastetoggle=<F2>
+
+" copy in insert mode
+set mouse=i
 
 " remaps
 nnoremap <C-J> <C-W><C-J>
@@ -116,8 +120,8 @@ map <C-n> :NERDTreeToggle<CR>
 let NERDTreeIgnore=['\.pyc$', '\~$'] "ignore files in NERDTree
 let g:nerdtree_tabs_autofind=1
 
-nnoremap gd :YcmCompleter GoTo<CR>
-let g:ycm_python_binary_path = 'python'
+" nnoremap gd :YcmCompleter GoTo<CR>
+" let g:ycm_python_binary_path = 'python'
 
 " argwrap
 nnoremap tt :ArgWrap<CR>
@@ -184,5 +188,40 @@ let g:airline#extensions#tabline#enabled = 1
 " Show just the filename
 let g:airline#extensions#tabline#fnamemod = ':t'
 
-" Trim trailing whitespace for code files 
+" Trim trailing whitespace for code files
 autocmd FileType python,javascript,html,yaml autocmd BufWritePre <buffer> :%s/\s\+$//e
+
+" 2-space for YAML
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+
+" ====== Language server things =======
+let g:LanguageClient_serverCommands = {
+    \ 'python': ['/nail/home/varun/bin/pyls/bin/pyls'],
+    \ }
+
+" Automatically start language servers.
+let g:LanguageClient_autoStart = 1
+
+" set completion
+set completefunc=LanguageClient#complete
+
+" Bindings
+nnoremap <silent> gd :call LanguageClient_textDocument_definition()<CR>
+nnoremap <silent> <C-R> :call LanguageClient_textDocument_references()<CR>
+
+" JEDI
+" Open stuff as right window split
+let g:jedi#use_splits_not_buffers = "right"
+let g:jedi#show_call_signatures = "1"
+" nnoremap <silent> <C-R> :call jedi#usages()<CR>
+"
+"
+function! GetSourceGraphLink()
+    let repo = system('git config --get remote.origin.url | awk -F":" "{print \$2"}')
+    let file = system('git ls-files --full-name ' . bufname("%"))
+    let sha = system('git rev-parse master')
+    let ln = line(".")
+    let raw_link = "https://sourcegraph.yelpcorp.com/" . repo . "@" . sha . "/-/blob/". file . "#L" . ln
+    let link = substitute(raw_link, "\n", "", "g")
+    echo link
+endfunction
